@@ -1,0 +1,9 @@
+pdf_pages
+fullpages
+extracted_images
+extracted_figures_by_caption
+annotated_results
+Crop_imgs
+.DS_Store
+extracted_openCV.py
+pdf_img_fetch
