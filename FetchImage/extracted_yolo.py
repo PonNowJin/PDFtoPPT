@@ -7,7 +7,7 @@ import pytesseract
 from ultralytics import YOLO
 import numpy as np
 
-CROP_IMAGE_DIR = "Crop_imgs"
+CROP_IMAGE_DIR = "Crop_imgs_demo"
 
 # 載入你訓練好的模型
 model = YOLO("FetchImage/yolo_model/best_3.pt")
@@ -188,7 +188,7 @@ def extract_caption_near_image(img, x1, y1, x2, y2, padding=100, max_lines=8):
 
 
 if __name__ == "__main__":
-    pdf_path = "/Users/ponfu/Downloads/2101.01169v5.pdf"
+    pdf_path = "2405.10530v1.pdf"
     tmp_image_folder = "pdf_pages"
     output_annotated_folder = "annotated_results"
 
