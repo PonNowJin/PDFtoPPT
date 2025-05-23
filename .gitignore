@@ -7,3 +7,4 @@ Crop_imgs
 .DS_Store
 extracted_openCV.py
 pdf_img_fetch
+Gemini/.env
