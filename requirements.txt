@@ -6,3 +6,6 @@ opencv-python==4.9.0.80
 PyMuPDF==1.23.16
 numpy==1.26.4
 fastapi[standard]==0.115.12
+google-genai
+python-dotenv
+ipykernel
