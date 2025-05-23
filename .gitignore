@@ -8,3 +8,10 @@ Crop_imgs
 extracted_openCV.py
 pdf_img_fetch
 Gemini/.env
+output_metadata.json
+__init__.cpython-311.pyc
+app.cpython-311.pyc
+utils.cpython-311.pyc
+output_metadata.json
+Crop_imgs_demo
+__pycache__
