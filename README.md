@@ -1,8 +1,27 @@
 # PDFtoPPT
 
+## 安裝專題依賴
 ```bash
 pip install -r requirements.txt
 ```
+
+## front-end
+dummy logic 在 utils.py
+```bash
+fastapi run app.py
+```
+
+## 論文pdf圖片擷取
+FetchImage/extracted_yolo 中有 api 使用
+產出結果圖片在 **Crop_imgs** 中
+並產出 **output_metadata.json** 提供後續做進一步分析與 mapping
+
+單獨測試
+```bash
+cd FetchImage
+python3 extracted_yolo.py
+```
+
 
 # Gemini使用方式
 
