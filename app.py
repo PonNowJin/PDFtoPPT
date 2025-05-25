@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Optional
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
@@ -49,7 +50,9 @@ async def serve_index():
 @app.post("/uploadfile/")
 async def create_upload_file(
     pdf_file: UploadFile = File(..., description="The PDF paper to process."),
-    pptx_file: UploadFile = File(..., description="The PPTX theme template."),
+    pptx_file: Optional[UploadFile] = File(
+        None, description="The PPTX theme template."
+    ),
 ):
     # Validate PDF
     if not pdf_file.filename or not pdf_file.filename.lower().endswith(".pdf"):
@@ -58,18 +61,17 @@ async def create_upload_file(
             detail="Invalid file type for paper. Only PDF files are accepted.",
         )
 
-    # Validate PPTX
-    if not pptx_file.filename or not pptx_file.filename.lower().endswith(".pptx"):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid file type for theme. Only PPTX files are accepted.",
-        )
+    # # Validate PPTX
+    # if not pptx_file.filename or not pptx_file.filename.lower().endswith(".pptx"):
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="Invalid file type for theme. Only PPTX files are accepted.",
+    #     )
 
     pdf_path = os.path.join(TEMP_DIR, f"paper_{pdf_file.filename}")
-    theme_pptx_path = os.path.join(TEMP_DIR, f"theme_{pptx_file.filename}")
-
     base_pdf, _ = os.path.splitext(pdf_file.filename)
     output_pptx_path = os.path.join(TEMP_DIR, f"{base_pdf}_slides.pptx")
+    theme_pptx_path = None
 
     try:
         # Save PDF
@@ -77,10 +79,19 @@ async def create_upload_file(
             shutil.copyfileobj(pdf_file.file, buffer)
 
         # Save PPTX Theme
-        with open(theme_pptx_path, "wb") as buffer:
-            shutil.copyfileobj(pptx_file.file, buffer)
+        if pptx_file and pptx_file.filename:
+            if not pptx_file.filename.lower().endswith(".pptx"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid theme file type. Only PPTX files are accepted.",
+                )
+                
+            theme_pptx_path = os.path.join(TEMP_DIR, f"theme_{pptx_file.filename}")
+            
+            with open(theme_pptx_path, "wb") as buffer:
+                shutil.copyfileobj(pptx_file.file, buffer)
 
-        # --- ACTUAL LOGIC ---
+        # Main logic
         paper_to_slide(pdf_path, output_pptx_path, theme_pptx_path)
 
         if not os.path.exists(output_pptx_path):
@@ -101,10 +112,14 @@ async def create_upload_file(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
     finally:
-        for path in [pdf_path, theme_pptx_path]:
-            if os.path.exists(path):
+        paths_to_remove = [pdf_path]
+        if theme_pptx_path:
+            paths_to_remove.append(theme_pptx_path)
+
+        for path in paths_to_remove:
+            if path and os.path.exists(path):
                 try:
                     os.remove(path)
-
+                    
                 except Exception as e_remove:
                     print(f"Error removing temporary file {path}: {e_remove}")

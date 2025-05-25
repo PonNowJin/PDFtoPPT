@@ -15,6 +15,10 @@
         transition: background-color 0.2s ease-in-out;
         margin-bottom: 1.5rem;
         background-color: white;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       .dropzone:hover,
       .dropzone.dragover {
@@ -34,6 +38,8 @@
         height: 3rem;
         color: #94a3b8;
         margin-bottom: 0.5rem;
+        margin-left: auto;
+        margin-right: auto;
       }
       .button-style {
         margin-top: 0.75rem;
@@ -58,6 +64,7 @@
         font-weight: 500;
         word-break: break-all;
         padding: 0 1rem;
+        min-height: 2.5em;
       }
       .file-name.error {
         color: #ef4444;
@@ -81,6 +88,16 @@
       .submit-button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+      .grid-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      @media (min-width: 768px) {
+        .grid-container {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
     </style>
   </head>
@@ -123,11 +140,12 @@
             Boring Paper to Beautiful Slides
           </h1>
           <p class="text-slate-600 mb-8">
-            Upload your research paper (PDF) and a theme template (PPTX).
+            Upload your research paper (PDF) and optionally a theme template
+            (PPTX)
           </p>
 
           <form id="upload-form">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid-container">
               <div id="pdf-dropzone" class="dropzone">
                 <input type="file" id="pdf-file" class="hidden" accept=".pdf" />
                 <div
@@ -143,15 +161,11 @@
                       d="M8.5 13.5H11V16.5H13V13.5H15.5L12 10L8.5 13.5ZM6 2H18C19.1 2 20 2.9 20 4V20C20 21.1 19.1 22 18 22H6C4.9 22 4 21.1 4 20V4C4 2.9 4.9 2 6 2ZM18 20V4H6V20H18Z"
                     />
                   </svg>
-                  <p class="text-lg font-semibold text-slate-700">PDF Paper</p>
+                  <p class="text-lg font-semibold text-slate-700">
+                    PDF Paper <span class="text-red-500">*</span>
+                  </p>
                   <p class="text-sm text-slate-500">Drag & Drop or</p>
-                  <button
-                    type="button"
-                    id="select-pdf-button"
-                    class="button-style"
-                  >
-                    Select PDF
-                  </button>
+                  <button type="button" class="button-style">Select PDF</button>
                   <p id="pdf-name-display" class="file-name"></p>
                 </div>
               </div>
@@ -176,13 +190,11 @@
                       d="M4 3H16L20 7V21C20 21.5304 19.7893 22.0391 19.4142 22.4142C19.0391 22.7893 18.5304 23 18 23H4C3.46957 23 2.96086 22.7893 2.58579 22.4142C2.21071 22.0391 2 21.5304 2 21V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3ZM15 7H18.5L15 3.5V7ZM7 11H9V14H12V11H14V14C14 15.1046 13.1046 16 12 16H9C7.89543 16 7 15.1046 7 14V11Z"
                     />
                   </svg>
-                  <p class="text-lg font-semibold text-slate-700">PPTX Theme</p>
+                  <p class="text-lg font-semibold text-slate-700">
+                    PPTX Theme
+                  </p>
                   <p class="text-sm text-slate-500">Drag & Drop or</p>
-                  <button
-                    type="button"
-                    id="select-pptx-button"
-                    class="button-style"
-                  >
+                  <button type="button" class="button-style">
                     Select PPTX
                   </button>
                   <p id="pptx-name-display" class="file-name"></p>
@@ -216,7 +228,6 @@
           </div>
           <p class="text-slate-500 mt-4">This may take a few moments...</p>
         </div>
-
         <div id="download-section" class="hidden text-center">
           <svg
             class="w-20 h-20 text-green-500 mx-auto mb-4"
@@ -238,10 +249,9 @@
           <a
             id="download-link"
             href="#"
-            class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105"
+            >Download Slides</a
           >
-            Download Slides
-          </a>
           <button
             id="convert-another"
             class="mt-8 block mx-auto text-blue-600 hover:text-blue-700 font-semibold py-2 px-4"
@@ -258,8 +268,6 @@
       const pptxFileInput = document.getElementById("pptx-file");
       const pdfDropzone = document.getElementById("pdf-dropzone");
       const pptxDropzone = document.getElementById("pptx-dropzone");
-      const selectPdfButton = document.getElementById("select-pdf-button");
-      const selectPptxButton = document.getElementById("select-pptx-button");
       const pdfNameDisplay = document.getElementById("pdf-name-display");
       const pptxNameDisplay = document.getElementById("pptx-name-display");
       const submitButton = document.getElementById("submit-button");
@@ -274,7 +282,7 @@
       let pptxFile = null;
 
       function updateSubmitButtonState() {
-        submitButton.disabled = !(pdfFile && pptxFile);
+        submitButton.disabled = !pdfFile;
       }
 
       function handleFileSelect(
@@ -289,26 +297,29 @@
         errorMessage.textContent = "";
         nameDisplay.classList.remove("error");
 
-        if (files.length === 0) return;
+        if (files.length === 0) {
+          nameDisplay.textContent = "";
+          if (fileType === "pdf") pdfFile = null;
+          else pptxFile = null;
+          updateSubmitButtonState();
+          return;
+        }
 
         const file = files[0];
         let isValid = false;
         let expectedType = "";
-        let expectedExt = "";
 
         if (fileType === "pdf") {
           isValid =
             file.type === "application/pdf" ||
             file.name.toLowerCase().endsWith(".pdf");
           expectedType = "PDF";
-          expectedExt = ".pdf";
         } else if (fileType === "pptx") {
           isValid =
             file.name.toLowerCase().endsWith(".pptx") ||
             file.type ===
               "application/vnd.openxmlformats-officedocument.presentationml.presentation";
           expectedType = "PPTX";
-          expectedExt = ".pptx";
         }
 
         if (files.length > 1) {
@@ -341,7 +352,6 @@
         inputElement.addEventListener("change", () =>
           handleFileSelect(inputElement, nameDisplay, fileType)
         );
-
         ["dragenter", "dragover"].forEach((eventName) => {
           dropzoneElement.addEventListener(eventName, (e) => {
             e.preventDefault();
@@ -349,7 +359,6 @@
             dropzoneElement.classList.add("dragover");
           });
         });
-
         ["dragleave", "drop"].forEach((eventName) => {
           dropzoneElement.addEventListener(eventName, (e) => {
             e.preventDefault();
@@ -357,12 +366,9 @@
             dropzoneElement.classList.remove("dragover");
           });
         });
-
         dropzoneElement.addEventListener("drop", (e) => {
           handleFileSelect(inputElement, nameDisplay, fileType, e);
         });
-
-        // Prevent button clicks from triggering dropzone click
         dropzoneElement
           .querySelector("button")
           .addEventListener("click", (e) => {
@@ -378,9 +384,8 @@
         event.preventDefault();
         errorMessage.textContent = "";
 
-        if (!pdfFile || !pptxFile) {
-          errorMessage.textContent =
-            "Please select both a PDF and a PPTX file.";
+        if (!pdfFile) {
+          errorMessage.textContent = "Please select a PDF file.";
           return;
         }
 
@@ -390,7 +395,9 @@
 
         const formData = new FormData();
         formData.append("pdf_file", pdfFile);
-        formData.append("pptx_file", pptxFile);
+        if (pptxFile) {
+          formData.append("pptx_file", pptxFile);
+        }
 
         try {
           const response = await fetch("/uploadfile/", {
@@ -422,12 +429,23 @@
             const url = URL.createObjectURL(blob);
             downloadLink.href = url;
             downloadLink.download = `${pdfBaseName}_generated.pptx`;
-
             loadingSection.classList.add("hidden");
             downloadSection.classList.remove("hidden");
           } else {
             console.error("Received unexpected content type:", blob.type, blob);
-            throw new Error("Server response was not a valid PPTX file.");
+            try {
+              const errorText = await blob.text();
+              console.error("Server Response Text:", errorText);
+              throw new Error(
+                "Server did not return a PPTX. Response: " +
+                  errorText.substring(0, 200) +
+                  "..."
+              );
+            } catch {
+              throw new Error(
+                "Server did not return a PPTX file. Received: " + blob.type
+              );
+            }
           }
         } catch (error) {
           console.error("Error during upload/processing:", error);
@@ -441,7 +459,6 @@
         uploadSection.classList.remove("hidden");
         downloadSection.classList.add("hidden");
         loadingSection.classList.add("hidden");
-
         pdfFileInput.value = "";
         pptxFileInput.value = "";
         pdfNameDisplay.textContent = "";
@@ -452,14 +469,12 @@
         pptxFile = null;
         errorMessage.textContent = "";
         updateSubmitButtonState();
-
         if (downloadLink.href && downloadLink.href.startsWith("blob:")) {
           URL.revokeObjectURL(downloadLink.href);
           downloadLink.href = "#";
         }
       });
 
-      // Initial state check
       updateSubmitButtonState();
     </script>
   </body>
