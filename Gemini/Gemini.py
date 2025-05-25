@@ -18,12 +18,13 @@ client = genai.Client(api_key=key)
 """
 
 
-def send_to_gemini(pdf:str, metadata:str):
+def send_to_gemini(pdf:str, metadata:str, response_file_path:str):
   """使用 gemini 完成 ppt 結構
 
   Args:
       pdf (str): 論文 pdf path
       metadata (str): metadata path
+      response_file_path: str
   """
   API_KEY = os.getenv('GEMINI_API_KEY')
   client = genai.Client(api_key=API_KEY)
@@ -53,11 +54,12 @@ def send_to_gemini(pdf:str, metadata:str):
 
   print(response.text)
 
-  with open("generate_output.txt", "w", encoding="utf-8") as f:
+  with open(response_file_path, "w", encoding="utf-8") as f:
     f.write(response.text)
 
 
 if __name__ == '__main__':
   pdf_path = '2405.10530v1.pdf'
   metadata_path = 'output_metadata.txt'
-  send_to_gemini(pdf_path, metadata_path)
+  out_path = 'generate_output.txt'
+  send_to_gemini(pdf_path, metadata_path, out_path)

@@ -10,7 +10,7 @@ import os
 from PIL import Image
 import random
 
-def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="output_watermark.pptx",image_dir=None, prime=False):
+def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="output_watermark.pptx",image_dir=None, premium=False):
     # jsonlike_txt to json
     with open(json_data, "r", encoding="utf-8") as f:
         try:
@@ -116,7 +116,7 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
     print(f"PowerPoint 檔案儲存為：{output_path}")
     
     # 不是付費會員，加浮水印
-    if not prime:
+    if not premium:
         watermark(output_path, output_watermark_path)
 
 

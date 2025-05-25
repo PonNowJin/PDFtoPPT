@@ -30,7 +30,7 @@ def pdf_to_images(pdf_path, output_folder, dpi=300):
 
 
 # YOLO 推論
-def detect_and_annotate_images(image_paths, output_folder, debug=False):
+def detect_and_annotate_images(image_paths, output_folder, crop_img_dir=CROP_IMAGE_DIR,debug=False):
     os.makedirs(output_folder, exist_ok=True)
     metadata = []
 
@@ -67,7 +67,7 @@ def detect_and_annotate_images(image_paths, output_folder, debug=False):
                     cv2.putText(img, text, (x1 + 2, y1 - 4), font, font_scale, (0, 0, 255), thickness)
                 
         # 裁減
-        temp_metadata = crop_and_save_image(img, boxes_record, CROP_IMAGE_DIR)
+        temp_metadata = crop_and_save_image(img, boxes_record, crop_img_dir)
         metadata += temp_metadata
         
         if (debug):

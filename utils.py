@@ -1,18 +1,38 @@
 import time
+import json
+from FetchImage.extracted_yolo import pdf_to_images, detect_and_annotate_images
+from Gemini.Gemini import send_to_gemini
+from pptx_api import json_to_pptx
+
+PDF_IMG_DIR = 'temp_output/pdf_pages'  # temp資料夾 用於存轉檔後的pdf
+OUTPUT_ANNOTATED_DIR = 'temp_output/annotated_results' # 用於存標註好的結果（要將debug開啟才有用）
+METADATA_PATH = 'temp_output/output_metadata.json'
+GEMINI_OUTPUT_PATH = 'temp_output/gemini_response.txt'
+FINALL_PPT = 'final_output/final.pptx'
+FINALL_PPT_WM = 'final_output/final_wm.pptx'
+CROP_IMGS_DIR = 'Crop_imgs'
 
 
 def paper_to_slide(pdf_path: str, pptx_path: str) -> bool:
 
     try:
-        # Read pdf from pdf_path
-        # ...
+        #論文圖片處理 metadata 生成
+        print("將 PDF 頁面轉換為圖片...")
+        image_paths = pdf_to_images(pdf_path, PDF_IMG_DIR)
 
-        # Simulate processing
-        time.sleep(5)
+        print("使用 YOLO 偵測圖區...")
+        metadata = detect_and_annotate_images(image_paths, OUTPUT_ANNOTATED_DIR, crop_img_dir=CROP_IMGS_DIR,debug=False)
 
-        # Output pptx to pptx_path
-        with open(pptx_path, "w") as f:
-            f.write(f"This is a dummy PPTX.")
+        # 存檔 metadata
+        with open(METADATA_PATH, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, ensure_ascii=False, indent=4)
+        print("圖片抓取完成")
+        
+        # Gemini 處理
+        send_to_gemini(pdf_path, METADATA_PATH, GEMINI_OUTPUT_PATH)
+        
+        # 製作pptx
+        json_to_pptx(GEMINI_OUTPUT_PATH, FINALL_PPT, FINALL_PPT_WM, CROP_IMGS_DIR, premium=False)
 
         return True
 
