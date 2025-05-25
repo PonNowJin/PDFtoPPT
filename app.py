@@ -61,13 +61,6 @@ async def create_upload_file(
             detail="Invalid file type for paper. Only PDF files are accepted.",
         )
 
-    # # Validate PPTX
-    # if not pptx_file.filename or not pptx_file.filename.lower().endswith(".pptx"):
-    #     raise HTTPException(
-    #         status_code=400,
-    #         detail="Invalid file type for theme. Only PPTX files are accepted.",
-    #     )
-
     pdf_path = os.path.join(TEMP_DIR, f"paper_{pdf_file.filename}")
     base_pdf, _ = os.path.splitext(pdf_file.filename)
     output_pptx_path = os.path.join(TEMP_DIR, f"{base_pdf}_slides.pptx")
