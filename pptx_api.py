@@ -10,7 +10,7 @@ import os
 from PIL import Image
 import random
 
-def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="output_watermark.pptx",image_dir=None, premium=False):
+def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="output_watermark.pptx",image_dir=None, template='template/template_1.pptx',premium=False):
     # jsonlike_txt to json
     with open(json_data, "r", encoding="utf-8") as f:
         try:
@@ -25,7 +25,7 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
             print("其他錯誤：", e)
 
     # init ppt
-    prs = Presentation('template/template_1.pptx')
+    prs = Presentation(template)
 
     for idx, slide_data in enumerate(data):
         # print(slide_data, flush=True)

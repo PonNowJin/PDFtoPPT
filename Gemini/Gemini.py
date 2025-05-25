@@ -31,7 +31,7 @@ def send_to_gemini(pdf:str, metadata:str, response_file_path:str):
   
   pdf_path = pathlib.Path(pdf)
   txt_path = pathlib.Path(metadata)
-  with open("prompt.txt", "r", encoding="utf-8") as f:
+  with open("Gemini/prompt.txt", "r", encoding="utf-8") as f:
     prompt = f.read()
   
   response = client.models.generate_content(

@@ -6,6 +6,7 @@ import json
 import pytesseract
 from ultralytics import YOLO
 import numpy as np
+from tools import create_or_clear_folder
 
 CROP_IMAGE_DIR = "Crop_imgs_demo"
 
@@ -15,7 +16,8 @@ model = YOLO("FetchImage/yolo_model/best_3.pt")
 
 # pdf -> png
 def pdf_to_images(pdf_path, output_folder, dpi=300):
-    os.makedirs(output_folder, exist_ok=True)
+    # os.makedirs(output_folder, exist_ok=True)
+    create_or_clear_folder(output_folder)
     doc = fitz.open(pdf_path)
     image_paths = []
 
@@ -31,7 +33,8 @@ def pdf_to_images(pdf_path, output_folder, dpi=300):
 
 # YOLO 推論
 def detect_and_annotate_images(image_paths, output_folder, crop_img_dir=CROP_IMAGE_DIR,debug=False):
-    os.makedirs(output_folder, exist_ok=True)
+    create_or_clear_folder(output_folder)
+    create_or_clear_folder(crop_img_dir)
     metadata = []
 
     for img_idx, img_path in enumerate(image_paths):
