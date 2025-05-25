@@ -2,6 +2,9 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE
 from pptx.dml.color import RGBColor
+from pptx.oxml.xmlchemy import OxmlElement
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import qn
 import json
 import os
 from PIL import Image
@@ -22,7 +25,7 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
             print("其他錯誤：", e)
 
     # init ppt
-    prs = Presentation()
+    prs = Presentation('template/template_1.pptx')
 
     for idx, slide_data in enumerate(data):
         # print(slide_data, flush=True)
@@ -70,9 +73,36 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
         # 加入圖片
         if "image" in slide_data and image_dir:
             image_path = os.path.join(image_dir, slide_data["image"])
-            # print(image_path)
+
             if os.path.exists(image_path):
-                slide.shapes.add_picture(image_path, Inches(1), Inches(4.5), width=Inches(5.5))
+                
+                # 設定最大顯示區塊
+                max_width = Inches(7)
+                max_height = Inches(4.5)
+                top = Inches(3)
+                left = Inches(1)
+
+                # 圖片原始尺寸
+                with Image.open(image_path) as img:
+                    img_width_px, img_height_px = img.size
+                    # PPTX 的 DPI 預設為 96
+                    width = Inches(img_width_px / 96)
+                    height = Inches(img_height_px / 96)
+
+                    # 等比縮放
+                    scale_w = max_width / width
+                    scale_h = max_height / height
+                    scale = min(scale_w, scale_h)  # 選擇較小的縮放比例以完全容納圖片
+
+                    new_width = width * scale
+                    new_height = height * scale
+
+                    # 置中放置於框中
+                    left_centered = left + (max_width - new_width) / 2
+                    top_centered = top + (max_height - new_height) / 2
+
+                # 插入圖片
+                slide.shapes.add_picture(image_path, left_centered, top_centered, width=new_width, height=new_height)
                 
         # 加入備忘稿文字
         if "description" in slide_data:
@@ -80,6 +110,8 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
             text_frame = notes_slide.notes_text_frame
             text_frame.text = slide_data["description"]
     
+    delete_slide(prs, 0)  # 刪除第一頁（index 0）（模板頁面）
+    set_fonts_for_all_textboxes(prs)
     prs.save(output_path)
     print(f"PowerPoint 檔案儲存為：{output_path}")
     
@@ -120,6 +152,49 @@ def watermark(ppt_file, output_path,watermark_path='watermark/watermark.png', tr
 
     # 儲存結果
     prs.save(output_path)
+    
+
+# 刪除投影片某頁
+def delete_slide(prs, slide_index):
+    slide_id_list = prs.slides._sldIdLst  # 這是所有 slide 的 XML 列表
+    slides = list(prs.slides._sldIdLst)
+    slide = prs.slides[slide_index]
+    
+    # 取得這張 slide 的 rId
+    rId = None
+    for rel in prs.part.rels:
+        if prs.part.rels[rel].target_part == slide.part:
+            rId = rel
+            break
+
+    if rId is None:
+        raise ValueError("找不到 slide 的 rId")
+
+    # 在 XML 中移除對應的 slide entry
+    for sldId in slide_id_list:
+        if sldId.get(qn("r:id")) == rId:
+            slide_id_list.remove(sldId)
+            break
+
+    # 同時從 rels 中刪除連結（避免殘留）
+    prs.part.drop_rel(rId)
+
+        
+
+# 設定整份簡報字體
+def set_fonts_for_all_textboxes(prs, font_latin="Arial", font_east_asian="標楷體"):
+    for num, slide in enumerate(prs.slides):
+        if num == 0:
+            continue
+        for shape in slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            for paragraph in shape.text_frame.paragraphs:
+                for run in paragraph.runs:
+                    rPr = run._r.get_or_add_rPr()
+                    rPr.set(qn("a:ea"), font_east_asian)  # 設定 East Asian font
+                    run.font.name = font_latin
+
 
 if __name__ == "__main__":
     json_data = 'Gemini/generate_output.txt'
