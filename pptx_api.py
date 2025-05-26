@@ -72,8 +72,8 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
 
         # 加入圖片
         if "image" in slide_data and image_dir:
-            image_path = os.path.join(image_dir, slide_data["image"])
-
+            image_path = os.path.join(image_dir, os.path.basename(slide_data["image"]))
+            
             if os.path.exists(image_path):
                 
                 # 設定最大顯示區塊
