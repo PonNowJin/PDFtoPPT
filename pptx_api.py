@@ -59,6 +59,9 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
             top = Inches(1.5)
             width = Inches(8)
             height = Inches(5)
+            
+            font_size = 22  # pt
+            line_spacing = 1.5
 
             textbox = slide.shapes.add_textbox(left, top, width, height)
             tf = textbox.text_frame
@@ -68,13 +71,51 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
                 p = tf.add_paragraph() if idx != 0 else tf.paragraphs[0]
                 p.text = bullet
                 p.level = 0
-                p.font.size = Pt(20)
+                p.font.size = Pt(font_size)
+                
+            # 根據文字內容估算高度
+            text_height = estimate_textbox_height(
+                slide_data["body"],
+                font_size_pt=22,
+                line_spacing=line_spacing,
+                textbox_width_inch=8  # 你設定的寬度
+            )
+            # print(text_height)
 
         # 加入圖片
         if "image" in slide_data and image_dir:
             image_path = os.path.join(image_dir, os.path.basename(slide_data["image"]))
-            
             if os.path.exists(image_path):
+                # 取得簡報寬度與高度（單位：EMU）
+                slide_width_emu = prs.slide_width
+                slide_height_emu = prs.slide_height
+
+                # 換算成英吋
+                slide_width_inch = slide_width_emu / Inches(1)
+                slide_height_inch = slide_height_emu / Inches(1)
+                
+                # 最大圖片區域高度
+                total_slide_height = Inches(slide_height_inch)  # 你可根據 slide 高度決定
+                image_top = top + text_height + Inches(0.5)  # 空點間距
+                max_height = total_slide_height - image_top - Inches(0.3)
+                max_width = Inches(7)
+                left = Inches(1)
+
+                # 圖片原始尺寸與縮放
+                with Image.open(image_path) as img:
+                    img_width_px, img_height_px = img.size
+                    width = Inches(img_width_px / 96)
+                    height = Inches(img_height_px / 96)
+
+                    scale = min(max_width / width, max_height / height)
+                    new_width = width * scale
+                    new_height = height * scale
+
+                    left_centered = left + (max_width - new_width) / 2
+                slide.shapes.add_picture(image_path, left_centered, image_top, width=new_width, height=new_height)
+            '''
+            if os.path.exists(image_path):
+
                 
                 # 設定最大顯示區塊
                 max_width = Inches(7)
@@ -103,6 +144,7 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
 
                 # 插入圖片
                 slide.shapes.add_picture(image_path, left_centered, top_centered, width=new_width, height=new_height)
+                '''
                 
         # 加入備忘稿文字
         if "description" in slide_data:
@@ -118,6 +160,24 @@ def json_to_pptx(json_data, output_path="output.pptx", output_watermark_path="ou
     # 不是付費會員，加浮水印
     if not premium:
         watermark(output_path, output_watermark_path)
+
+
+# 估算文字匡可能高度
+def estimate_textbox_height(paragraphs, font_size_pt, line_spacing=1.2, textbox_width_inch=8):
+    # 估算每行可容納的字數（根據 textbox 寬度與字體大小）
+    chars_per_line = int((textbox_width_inch * 72) / font_size_pt * 1.6)
+
+    line_height = font_size_pt * line_spacing
+    total_lines = 0
+
+    for text in paragraphs:
+        text_len = len(text)
+        line_count = max(1, (text_len + chars_per_line - 1) // chars_per_line)
+        total_lines += line_count
+
+    total_height_pt = total_lines * line_height
+    return Inches(total_height_pt / 72)
+
 
 
 def watermark(ppt_file, output_path,watermark_path='watermark/watermark.png', transparent_img='watermark/img_watermark'):

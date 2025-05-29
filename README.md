@@ -1,45 +1,100 @@
-# PDFtoPPT
+# PDFtoPPT — AI-powered Academic Presentation Generator
 
-## 安裝專題依賴
+🌐 Language: [繁體中文](./README.zh-TW.md) | [Deutsch](./README.de.md)
+
+Automatically convert academic PDF papers into well-structured PowerPoint slides with extracted images, summarized content, and clean layout.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-## 直接開始
-1. 設定 API key: 在 `Gemini/.env` 中 (將.env.example 檔名尾部拿掉即可)
-2. 執行以下指令
+### 2. Set up Gemini API key
+
+* Create a `.env` file in the `Gemini/` folder (or rename `.env.example` to `.env`)
+* Add the following line (no quotes needed):
+
+```bash
+GEMINI_API_KEY=your_api_key_here
+```
+
+### 3. Start the backend server
+
 ```bash
 fastapi run app.py
 ```
-3. 使用瀏覽器開啟前端網站，**開始體驗！**
-### 簡報主題上傳區使用方式：
-開啟PowerPoint選定主題（選擇4:3大小，目前主要以此設計效果較佳）
-儲存pptx檔案，然後直接上傳
-若未上傳會使用預設版本
 
-## front-end
-dummy logic 在 utils.py
-```bash
-fastapi run app.py
-```
+### 4. Open the frontend in your browser and start converting!
 
-## 論文pdf圖片擷取
-FetchImage/extracted_yolo 中有 api 使用
-產出結果圖片在 **Crop_imgs** 中
-並產出 **output_metadata.json** 提供後續做進一步分析與 mapping
+---
 
-單獨測試
+## Custom Slide Template (Optional)
+
+You can upload your own PowerPoint template (`.pptx`) for slide styling:
+
+* **Recommended:** Use 4:3 slide ratio for optimal layout
+* Save your custom theme in PowerPoint and upload it via the frontend
+* If not uploaded, a default built-in template will be used
+
+---
+
+## Image Extraction from PDFs (YOLO Model)
+
+The system uses a YOLO model to detect and extract figures, diagrams, and tables from PDF files:
+
+* Script: `FetchImage/extracted_yolo.py`
+* Output:
+
+  * `Crop_imgs/`: Contains cropped figure images
+  * `output_metadata.json`: Stores location and page index info for each image
+
+### To run manually:
+
 ```bash
 cd FetchImage
 python3 extracted_yolo.py
 ```
 
+---
 
-## Gemini使用方式
+## Gemini Integration
 
-1. 先去[Google AI Studio](https://aistudio.google.com/u/3/prompts/new_chat)申請API key，可[參考](https://ai.google.dev/gemini-api/docs?hl=zh-tw)
-2. 在Gemini資料夾內創建.env檔案，檔案內寫入你的api key，不用加引號
-```bash
-GEMINI_API_KEY=key
-```
-3. prompt.txt可以改prompt
+Google Gemini API is integrated to summarize paragraph-level content and structure slides accordingly.
+
+### Configuration:
+
+1. Get your API Key from [Google AI Studio](https://aistudio.google.com/u/3/prompts/new_chat)
+2. Save the key in `Gemini/.env`
+3. Modify `Gemini/prompt.txt` to customize generation prompts
+
+---
+
+## Project Structure
+
+| Folder / File          | Description                        |
+| ---------------------- | ---------------------------------- |
+| `app.py`               | Main FastAPI backend entry point   |
+| `Gemini/`              | Gemini API integration and prompts |
+| `FetchImage/`          | YOLO image detection & cropping    |
+| `pptx_api/`            | Logic for generating .pptx slides  |
+| `Crop_imgs/`           | Stores cropped figure images       |
+| `output_metadata.json` | Metadata for image-page mapping    |
+
+---
+
+## Best Use Cases
+
+* Academic presentation prep (e.g., thesis defense)
+* Journal paper slide generation
+* Researchers needing fast visual summaries from PDFs
+
+---
+
+## Feedback & Collaboration
+
+We welcome any suggestions or collaboration proposals. Please reach out to the development team for more information.
